@@ -1,4 +1,4 @@
-package stepDefs;
+package stepDefs; //vi jobbar på det
 
 import io.cucumber.java.Before;
 import io.cucumber.java.After;
