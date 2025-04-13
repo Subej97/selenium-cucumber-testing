@@ -15,22 +15,47 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.firefox.FirefoxOptions;
 
 public class StepDefinitions {
 
     WebDriver driver;
 
-    @Before
-    public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\Rasmus\\Desktop\\chromedriver.exe");
-        driver = new ChromeDriver();
+    @Given("I open the {string} browser")
+    public void i_open_the_browser(String browserName) {
+        if (browserName.equalsIgnoreCase("chrome")) {
+            // Set Chrome options if necessary
+            System.setProperty("webdriver.chrome.driver", "C:\\Users\\Rasmus\\Desktop\\chromedriver.exe");
+            driver = new ChromeDriver(); // This is for ChromeDriver, no need for FirefoxOptions here
+        } else if (browserName.equalsIgnoreCase("firefox")) {
+            // Set Firefox binary location
+            FirefoxOptions options = new FirefoxOptions();
+            options.setBinary("C:\\Program Files\\Mozilla Firefox\\firefox.exe");
+
+            // Set geckodriver path
+            System.setProperty("webdriver.gecko.driver", "C:\\Users\\Rasmus\\Desktop\\geckodriver.exe");
+
+            // Initialize FirefoxDriver with options
+            driver = new FirefoxDriver(options);
+        } else {
+            throw new IllegalArgumentException("Browser not supported: " + browserName);
+        }
+
+        // Open the registration page
+        driver.get("https://membership.basketballengland.co.uk/NewSupporterAccount");
+
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         driver.manage().window().maximize();
     }
-
     @Given("I am on the registration page")
     public void i_am_on_the_registration_page() {
-        driver.get("https://membership.basketballengland.co.uk/NewSupporterAccount");
+        // Example: Check if a registration element is visible (e.g., form or a specific element)
+        WebElement registrationForm = driver.findElement(By.id("member_emailaddress"));  // Replace with actual element
+        assertTrue("Registration form not found!", registrationForm.isDisplayed());
     }
+
+
 
     @When("I fill in the registration form with valid details")
     public void i_fill_in_the_registration_form_with_valid_details() {
@@ -48,8 +73,9 @@ public class StepDefinitions {
             WebElement adultCheckbox = driver.findElement(By.cssSelector("label[for='sign_up_26']"));
             WebElement cocCheckbox = driver.findElement(By.cssSelector("label[for='fanmembersignup_agreetocodeofethicsandconduct']"));
 
-            emailAddr.sendKeys("johndoe6@email.com");
-            conEmailAdd.sendKeys("johndoe6@email.com");
+            String email = "test" + System.currentTimeMillis() + "@example.com";
+            emailAddr.sendKeys(email);
+            conEmailAdd.sendKeys(email);
             dateOfBirth.sendKeys("17/05/1997");
             firstName.sendKeys("John");
             lastName.sendKeys("Doe");
@@ -194,56 +220,6 @@ public class StepDefinitions {
 
     @Then("I should see an error message stating that passwords do not match")
     public void i_should_see_an_error_message_stating_that_passwords_do_not_match() {
-        try {
-            WebElement errorMPMessage = driver.findElement(By.xpath("//span[@for='signupunlicenced_confirmpassword' and text()='Password did not match']"));
-            assertTrue(errorMPMessage.isDisplayed());
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("Confirmation message not found.");
-        }
-    }
-
-    @When("I fill the form with password {string} and confirm password {string}")
-    public void i_fill_the_form_with_password_and_confirm_password(String passwordVal, String confirmPasswordVal) {
-        try {
-            waitForVisibility(By.id("member_emailaddress"), 10);
-
-            WebElement emailAddr = driver.findElement(By.id("member_emailaddress"));
-            WebElement conEmailAdd = driver.findElement(By.id("member_confirmemailaddress"));
-            WebElement dateOfBirth = driver.findElement(By.id("dp"));
-            WebElement firstName = driver.findElement(By.id("member_firstname"));
-            WebElement lastName = driver.findElement(By.id("member_lastname"));
-            WebElement password = driver.findElement(By.id("signupunlicenced_password"));
-            WebElement confirmPassword = driver.findElement(By.id("signupunlicenced_confirmpassword"));
-            WebElement termsCheckbox = driver.findElement(By.cssSelector("label[for='sign_up_25']"));
-            WebElement adultCheckbox = driver.findElement(By.cssSelector("label[for='sign_up_26']"));
-            WebElement cocCheckbox = driver.findElement(By.cssSelector("label[for='fanmembersignup_agreetocodeofethicsandconduct']"));
-
-            // Give each user a unique email
-            String uniqueEmail = "user" + System.currentTimeMillis() + "@test.com";
-
-            emailAddr.sendKeys(uniqueEmail);
-            conEmailAdd.sendKeys(uniqueEmail);
-            dateOfBirth.sendKeys("17/05/1997");
-            firstName.sendKeys("John");
-            lastName.sendKeys("Doe");
-            password.sendKeys(passwordVal);
-            confirmPassword.sendKeys(confirmPasswordVal);
-
-            termsCheckbox.click();
-            adultCheckbox.click();
-            cocCheckbox.click();
-
-            WebElement submitButton = driver.findElement(By.cssSelector("input[type='submit'][name='join']"));
-            submitButton.click();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Then("I should see an error message stating that passwords do not match2")
-    public void i_should_see_an_error_message_stating_that_passwords_do_not_match2() {
         try {
             WebElement errorMPMessage = driver.findElement(By.xpath("//span[@for='signupunlicenced_confirmpassword' and text()='Password did not match']"));
             assertTrue(errorMPMessage.isDisplayed());
